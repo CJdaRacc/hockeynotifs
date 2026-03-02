@@ -1,7 +1,7 @@
 {
     "show_comparative": true,
     "show_news": true,
-    "show_top_lines": false,
+    "show_top_lines": true,
     "show_player_stats": false,
     "notify_starts": false,
     "notify_goals": false,
@@ -40,5 +40,17 @@
         "rounding": 1.7690000534057617,
         "padding": 4.681000232696533,
         "font_scale": 1.0
+    },
+    "layout": {
+        "teams_split": 0.5,
+        "dashboard_heights": {
+            "comp_standings_window": 362.0,
+            "news_window": 179,
+            "top_lines_window": 80,
+            "stats_window": 120,
+            "weekly_games_list": 154.0,
+            "games_list": 168.0,
+            "notif_settings_window": 154.0
+        }
     }
 }

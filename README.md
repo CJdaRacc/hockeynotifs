@@ -85,12 +85,14 @@ Run the main application:
 python main.py
 ```
 
-- **Dashboard**: Click **"View Game Stats"** on any game to see a live/final boxscore. Use the checkboxes to toggle sections like News or Standings.
-- **Notifications**: Enable "Notify Game Starts" or "Notify Goals" for real-time alerts. Click **"Test Toast Notification"** to verify they work.
-- **Teams & Players**: Select a team to load its roster. Click **"View Stats"** next to a player's name to see their details on the right.
-- **Customization**: Go to the **"Customize UI"** tab, adjust colors and sliders, then click **"Save Theme Settings"**.
-- **System Tray**: When the window is hidden, look for the hockey puck icon in your taskbar to show, refresh, or exit.
-- **Sorting**: Click any table header (e.g., "PTS" in standings) to sort the data.
+1. **Dashboard**: Click **"View Game Stats"** on any game to see a live/final boxscore. Use the checkboxes to toggle sections like News or Standings.
+2. **Notifications**: Enable "Notify Game Starts" or "Notify Goals" for real-time alerts. Click **"Test Toast Notification"** to verify they work.
+3. **Teams & Players**: Select a team to load its roster. Click **"View Stats"** next to a player's name to see their details on the right.
+4. **Customization**: Go to the **"Customize UI"** tab, adjust colors and sliders, then click **"Save Theme Settings"**.
+5. **Resizable Containers**: Click and drag the **"---"** handles at the bottom of Dashboard sections to adjust their heights.
+6. **Double-Click**: Double-click the main window header or areas to adjust the window size if it becomes too small or needs resetting.
+7. **System Tray**: When the window is hidden, look for the hockey puck icon in your taskbar to show, refresh, or exit.
+8. **Sorting**: Click any table header (e.g., "PTS" in standings) to sort the data.
 
 ## Technical Details
 
@@ -104,3 +106,18 @@ python main.py
 - Data provided by the NHL (National Hockey League).
 - Icons and headshots are sourced via the NHL Web API.
 - Head coach information is manually curated based on league standings and Wikipedia data.
+
+### notes:
+- add adjustment bar to all tabs 
+- move all contianers to the center but words inside are still in the left side
+- allow background persistance to add even after pressing x 
+
+### features to add
+- add PWHL option 
+- synopsis and then link to espn w actual embed 
+- tailored news for players u like 
+
+
+
+
+#### vibe coded af just wanted to get my idea out there 
