@@ -1,11 +1,11 @@
 {
-    "show_comparative": false,
-    "show_news": false,
+    "show_comparative": true,
+    "show_news": true,
     "show_top_lines": false,
     "show_player_stats": false,
     "notify_starts": false,
     "notify_goals": false,
-    "notify_daily": false,
+    "notify_daily": true,
     "theme": {
         "text": [
             255,

@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 
 # NHL API Base URL
 BASE_URL = "https://api-web.nhle.com/v1"
@@ -95,41 +96,70 @@ def get_standings(date=None):
         return []
 
 def get_news():
-    """Returns a list of simulated NHL news items including injuries, trades, and major events."""
-    # Since there's no simple public news API, we'll provide a more comprehensive set of simulated news 
-    # to fulfill the user's requirement for diverse categories.
-    return [
-        {
-            "category": "INJURY",
-            "title": "Connor McDavid (EDM) - Day-to-Day",
-            "description": "Edmonton's captain is listed as day-to-day with a lower-body injury following last night's game. He will be re-evaluated tomorrow."
-        },
-        {
-            "category": "TRADE",
-            "title": "Trade Speculation: Toronto Seeking Defensive Depth",
-            "description": "Rumors suggest the Maple Leafs are actively scouting the market for a top-four defenseman before the upcoming deadline."
-        },
-        {
-            "category": "TRAINING",
-            "title": "Rookies Impress at Mid-Season Development Camp",
-            "description": "Several top prospects across the league have shown significant progress in recent skills and conditioning sessions."
-        },
-        {
-            "category": "MAJOR NEWS",
-            "title": "NHL Announces Expansion of International Series",
-            "description": "The league will host four regular-season games in Europe next year, including stops in Prague and Stockholm."
-        },
-        {
-            "category": "INJURY",
-            "title": "Cale Makar (COL) Returns to Practice",
-            "description": "Good news for the Avalanche as their star defenseman was a full participant in morning skate today."
-        },
-        {
-            "category": "TRADE",
-            "title": "Pittsburgh Acquires Draft Picks in Minor Deal",
-            "description": "The Penguins have traded a depth forward to Seattle in exchange for a conditional 5th-round pick in 2027."
-        }
-    ]
+    """Scrapes NHL news headlines from ESPN and categorizes them."""
+    url = "https://www.espn.com/nhl/"
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    
+    news_items = []
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        seen_titles = set()
+        
+        # Search for links that look like news headlines
+        for section in soup.find_all('section'):
+            for link in section.find_all('a'):
+                title = link.get_text().strip()
+                
+                # Filter for headline-like text (length and relevance)
+                if 20 < len(title) < 150 and title not in seen_titles:
+                    # Look for keywords to categorize
+                    category = "MAJOR NEWS"
+                    lower_title = title.lower()
+                    
+                    if any(kw in lower_title for kw in ['injury', 'injured', 'ir', 'surgery', 'out for', 'leaves game', 'day-to-day']):
+                        category = "INJURY"
+                    elif any(kw in lower_title for kw in ['fire', 'interim', 'hire', 'coach', 'bench']):
+                        category = "COACHING"
+                    elif any(kw in lower_title for kw in ['trade', 'acquired', 'deal', 'swap', 'move', 'tracker']):
+                        category = "TRADE"
+                    elif any(kw in lower_title for kw in ['signing', 'sign', 'extension', 'contract', 'recall', 'assign', 'waive']):
+                        category = "TRANSACTION"
+                    elif any(kw in lower_title for kw in ['training', 'practice', 'skate', 'camp']):
+                        category = "TRAINING"
+                    elif any(kw in lower_title for kw in ['suspended', 'suspension', 'fine', 'dps']):
+                        category = "DISCIPLINE"
+                    
+                    # Some headlines might be menu items or ads, we try to filter those out
+                    if any(ignore in lower_title for ignore in ['watch', 'listen', 'fantasy', 'espn+', 'app', 'sign up', 'subscribe']):
+                        continue
+
+                    news_items.append({
+                        "category": category,
+                        "title": title,
+                        "description": "Click for full story on ESPN.com"
+                    })
+                    seen_titles.add(title)
+                    
+                    if len(news_items) >= 10:
+                        break
+            if len(news_items) >= 10:
+                break
+                
+    except Exception as e:
+        print(f"Error scraping news: {e}")
+        # Fallback to some hardcoded items if scraping fails entirely
+        return [
+            {"category": "NEWS", "title": "Real-time news unavailable", "description": "Check your connection or visit NHL.com/news"}
+        ]
+    
+    # If we found nothing, provide fallback
+    if not news_items:
+        return [{"category": "NEWS", "title": "No major headlines found", "description": "Check back later for updates."}]
+        
+    return news_items
 
 def get_player_stats():
     # Fetching league leaders for simplicity. 
