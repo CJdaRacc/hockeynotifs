@@ -1,0 +1,44 @@
+{
+    "show_comparative": false,
+    "show_news": false,
+    "show_top_lines": false,
+    "show_player_stats": false,
+    "notify_starts": false,
+    "notify_goals": false,
+    "notify_daily": false,
+    "theme": {
+        "text": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "background": [
+            30,
+            30,
+            30,
+            255
+        ],
+        "active_tab": [
+            0.1474197804927826,
+            0.1474197953939438,
+            0.162420392036438,
+            0.003921568859368563
+        ],
+        "button": [
+            0.14625337719917297,
+            0.14625342190265656,
+            0.3280254602432251,
+            1.0
+        ],
+        "header": [
+            51,
+            51,
+            55,
+            255
+        ],
+        "rounding": 1.7690000534057617,
+        "padding": 4.681000232696533,
+        "font_scale": 1.0
+    }
+}
