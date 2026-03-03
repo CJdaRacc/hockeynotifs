@@ -14,7 +14,7 @@ from PIL import Image
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 
-# Today's date is 2026-03-02
+# NHL Hockey Notifier
 APP_TITLE = "NHL Hockey Notifier"
 
 def resource_path(relative_path):
@@ -510,7 +510,7 @@ def refresh_data():
     try:
         # Check for daily notification on refresh if enabled and not yet sent today
         if settings.get("notify_daily"):
-            today = "2026-03-01" # In a real app, this would be datetime.now().date()
+            today = datetime.now().strftime("%Y-%m-%d")
             if cached_data.get("last_daily_notify") != today:
                 notify_games_async()
                 cached_data["last_daily_notify"] = today
@@ -546,7 +546,7 @@ def refresh_data():
         # Weekly games
         weekly_schedule = nhl_api.get_weekly_schedule()
         dpg.delete_item("weekly_games_list", children_only=True)
-        today_date = "2026-03-01"
+        today_date = datetime.now().strftime("%Y-%m-%d")
         found_upcoming = False
         if weekly_schedule:
             for day in weekly_schedule:
@@ -555,7 +555,7 @@ def refresh_data():
                 
                 if day['games']:
                     found_upcoming = True
-                    # Format date for display: 2026-03-02 -> March 02
+                    # Format date for display
                     dt = datetime.strptime(day['date'], "%Y-%m-%d")
                     date_display = dt.strftime("%A, %b %d")
                     dpg.add_text(f"--- {date_display} ---", color=[255, 200, 0], parent="weekly_games_list")

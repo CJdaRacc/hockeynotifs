@@ -20,8 +20,8 @@ def convert_utc_to_est(utc_str):
         return utc_str
 
 def get_todays_games():
-    # Today's date is 2026-03-01
-    date_str = "2026-03-01"
+    # Today's date (dynamically fetched)
+    date_str = datetime.now().strftime("%Y-%m-%d")
     url = f"{BASE_URL}/schedule/{date_str}"
     try:
         response = requests.get(url)
