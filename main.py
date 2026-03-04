@@ -56,7 +56,11 @@ default_settings = {
             "stats_window": 120,
             "notif_settings_window": 160,
             "games_list": 120,
-            "weekly_games_list": 180
+            "weekly_games_list": 180,
+            "game_stats_window": 300,
+            "full_standings_tab": 400,
+            "upcoming_schedule_table": 250,
+            "past_schedule_table": 250
         }
     }
 }
@@ -700,6 +704,7 @@ def refresh_data():
 def toggle_setting(sender, app_data, user_data):
     settings[user_data] = app_data
     save_settings()
+    refresh_data()
     on_viewport_resize()
 
 def update_theme(sender, app_data, user_data):
@@ -977,8 +982,6 @@ def setup_tray_icon():
     try:
         # Load an icon image
         # Use the first team logo found or a generic one if possible
-        # For now, let's create a simple square icon or use an existing one if available.
-        # We'll use a blank icon if nothing else is available.
         icon_img = Image.new('RGB', (64, 64), color=(0, 100, 200))
         
         menu = Menu(
@@ -987,10 +990,16 @@ def setup_tray_icon():
             MenuItem('Exit', exit_app)
         )
         
-        icon = Icon("NHL Notifier", icon_img, "NHL Notifier", menu)
-        icon.run()
+        global tray_icon
+        tray_icon = Icon("NHL Notifier", icon_img, "NHL Notifier", menu)
+        tray_icon.run()
     except Exception as e:
         print(f"Error setting up tray icon: {e}")
+
+# Viewport close callback to prevent application termination on 'X'
+def viewport_close_callback():
+    """Instead of closing, hide the viewport to run in background."""
+    dpg.hide_viewport()
 
 # Resizing mechanism for dashboard containers
 dragging_item = None
@@ -1030,6 +1039,8 @@ def update_dragging():
 if __name__ == "__main__":
     dpg.create_context()
     dpg.create_viewport(title=APP_TITLE, width=800, height=600)
+    # Configure viewport with close callback to allow background persistence
+    dpg.configure_viewport(0, close_callback=viewport_close_callback)
     dpg.set_viewport_resize_callback(on_viewport_resize)
     
     # Add a handler for global mouse release to stop dragging
@@ -1047,18 +1058,18 @@ if __name__ == "__main__":
             with dpg.group(tag="main_tabs_container"):
                 with dpg.tab_bar(tag="main_tabs"):
                     with dpg.tab(label="Dashboard"):
-                        with dpg.child_window(label="Notification Settings", tag="notif_settings_window", height=160):
+                        with dpg.child_window(label="Notification Settings", tag="notif_settings_window", height=settings["layout"]["dashboard_heights"].get("notif_settings_window", 160)):
                             dpg.add_text("NHL Notification Settings")
                             with dpg.group(horizontal=True):
-                                dpg.add_checkbox(label="Comparative Standings", callback=toggle_setting, user_data="show_comparative")
-                                dpg.add_checkbox(label="Show News", callback=toggle_setting, user_data="show_news")
-                                dpg.add_checkbox(label="Show Top Lines", callback=toggle_setting, user_data="show_top_lines")
-                                dpg.add_checkbox(label="Show Player Stats", callback=toggle_setting, user_data="show_player_stats")
+                                dpg.add_checkbox(label="Comparative Standings", default_value=settings["show_comparative"], callback=toggle_setting, user_data="show_comparative")
+                                dpg.add_checkbox(label="Show News", default_value=settings["show_news"], callback=toggle_setting, user_data="show_news")
+                                dpg.add_checkbox(label="Show Top Lines", default_value=settings["show_top_lines"], callback=toggle_setting, user_data="show_top_lines")
+                                dpg.add_checkbox(label="Show Player Stats", default_value=settings["show_player_stats"], callback=toggle_setting, user_data="show_player_stats")
                         
                             with dpg.group(horizontal=True):
-                                dpg.add_checkbox(label="Notify Daily Games", callback=toggle_setting, user_data="notify_daily")
-                                dpg.add_checkbox(label="Notify Game Starts", callback=toggle_setting, user_data="notify_starts")
-                                dpg.add_checkbox(label="Notify Goals", callback=toggle_setting, user_data="notify_goals")
+                                dpg.add_checkbox(label="Notify Daily Games", default_value=settings["notify_daily"], callback=toggle_setting, user_data="notify_daily")
+                                dpg.add_checkbox(label="Notify Game Starts", default_value=settings["notify_starts"], callback=toggle_setting, user_data="notify_starts")
+                                dpg.add_checkbox(label="Notify Goals", default_value=settings["notify_goals"], callback=toggle_setting, user_data="notify_goals")
                         
                             dpg.add_button(label="Refresh Dashboard Data", callback=refresh_data)
                             with dpg.group(horizontal=True):
@@ -1072,7 +1083,7 @@ if __name__ == "__main__":
                         
                         dpg.add_separator()
                         dpg.add_text("Today's Games:")
-                        with dpg.child_window(tag="games_list", height=120):
+                        with dpg.child_window(tag="games_list", height=settings["layout"]["dashboard_heights"].get("games_list", 120)):
                             pass
                         dpg.add_spacer(height=3)
                         dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="games_list", tag="handle_games")
@@ -1080,23 +1091,28 @@ if __name__ == "__main__":
                         dpg.add_spacer(height=3)
 
                         dpg.add_text("Upcoming This Week:")
-                        with dpg.child_window(tag="weekly_games_list", height=180):
+                        with dpg.child_window(tag="weekly_games_list", height=settings["layout"]["dashboard_heights"].get("weekly_games_list", 180)):
                             pass
                         dpg.add_spacer(height=3)
                         dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="weekly_games_list", tag="handle_weekly")
                         dpg.bind_item_theme("handle_weekly", "resize_handle_theme")
                         dpg.add_spacer(height=3)
 
-                        with dpg.child_window(tag="game_stats_window", height=300, show=False):
+                        with dpg.child_window(tag="game_stats_window", height=settings["layout"]["dashboard_heights"].get("game_stats_window", 300), show=False):
                             with dpg.group(horizontal=True):
                                 dpg.add_text("Game Boxscore/Stats")
                                 dpg.add_button(label="Close Boxscore", callback=lambda: dpg.hide_item("game_stats_window"))
                             with dpg.group(tag="game_stats_list"):
                                 pass
+                        
+                        dpg.add_spacer(height=3)
+                        dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="game_stats_window", tag="handle_game_stats")
+                        dpg.bind_item_theme("handle_game_stats", "resize_handle_theme")
+                        dpg.add_spacer(height=3)
 
                         # Windows for optional data (now inside Dashboard tab as child windows)
 
-                        with dpg.child_window(tag="comp_standings_window", height=200, show=False):
+                        with dpg.child_window(tag="comp_standings_window", height=settings["layout"]["dashboard_heights"].get("comp_standings_window", 200), show=False):
                             dpg.add_text("Comparative Standings (vs Previous Season 24-25)")
                             with dpg.table(tag="comp_standings_table", header_row=True, scrollY=True, sortable=True, callback=sort_callback):
                                 dpg.add_table_column(label="Team")
@@ -1110,7 +1126,7 @@ if __name__ == "__main__":
                         
                         dpg.add_separator(tag="comp_standings_sep", show=False)
 
-                        with dpg.child_window(tag="news_window", height=120, show=False):
+                        with dpg.child_window(tag="news_window", height=settings["layout"]["dashboard_heights"].get("news_window", 120), show=False):
                             dpg.add_text("NHL News")
                             with dpg.group(tag="news_list"):
                                 pass
@@ -1121,7 +1137,7 @@ if __name__ == "__main__":
 
                         dpg.add_separator(tag="news_sep", show=False)
 
-                        with dpg.child_window(tag="top_lines_window", height=80, show=False):
+                        with dpg.child_window(tag="top_lines_window", height=settings["layout"]["dashboard_heights"].get("top_lines_window", 80), show=False):
                             dpg.add_text("Top Players/Lines")
                             dpg.add_text("", tag="oline_text", wrap=0)
                             dpg.add_text("", tag="dline_text", wrap=0)
@@ -1133,7 +1149,7 @@ if __name__ == "__main__":
 
                         dpg.add_separator(tag="top_lines_sep", show=False)
 
-                        with dpg.child_window(tag="stats_window", height=120, show=False):
+                        with dpg.child_window(tag="stats_window", height=settings["layout"]["dashboard_heights"].get("stats_window", 120), show=False):
                             dpg.add_text("Player Goal Leaders")
                             with dpg.group(tag="stats_list"):
                                 pass
@@ -1177,15 +1193,20 @@ if __name__ == "__main__":
 
                     with dpg.tab(label="Full Standings"):
                         dpg.add_text("NHL League Standings")
-                        with dpg.table(tag="full_standings_table", header_row=True, scrollY=True, height=-1, sortable=True, callback=sort_callback):
-                            dpg.add_table_column(label="Team")
-                            dpg.add_table_column(label="GP")
-                            dpg.add_table_column(label="W")
-                            dpg.add_table_column(label="L")
-                            dpg.add_table_column(label="OTL")
-                            dpg.add_table_column(label="PTS")
-                            dpg.add_table_column(label="Conf")
-                            dpg.add_table_column(label="Div")
+                        with dpg.child_window(tag="full_standings_tab", height=settings["layout"]["dashboard_heights"].get("full_standings_tab", 400)):
+                            with dpg.table(tag="full_standings_table", header_row=True, scrollY=True, height=-1, sortable=True, callback=sort_callback):
+                                dpg.add_table_column(label="Team")
+                                dpg.add_table_column(label="GP")
+                                dpg.add_table_column(label="W")
+                                dpg.add_table_column(label="L")
+                                dpg.add_table_column(label="OTL")
+                                dpg.add_table_column(label="PTS")
+                                dpg.add_table_column(label="Conf")
+                                dpg.add_table_column(label="Div")
+                        dpg.add_spacer(height=3)
+                        dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="full_standings_tab", tag="handle_full_standings")
+                        dpg.bind_item_theme("handle_full_standings", "resize_handle_theme")
+                        dpg.add_spacer(height=3)
 
                     with dpg.tab(label="Full Schedule"):
                         dpg.add_text("Full Season Schedule")
@@ -1194,24 +1215,32 @@ if __name__ == "__main__":
                         
                         with dpg.child_window(height=-1):
                             dpg.add_text("Upcoming Games:", color=[100, 255, 100])
-                            with dpg.table(tag="upcoming_schedule_table", header_row=True, scrollY=True, height=250, sortable=True, callback=sort_callback):
+                            with dpg.table(tag="upcoming_schedule_table", header_row=True, scrollY=True, height=settings["layout"]["dashboard_heights"].get("upcoming_schedule_table", 250), sortable=True, callback=sort_callback):
                                 dpg.add_table_column(label="Date")
                                 dpg.add_table_column(label="Away")
                                 dpg.add_table_column(label="Home")
                                 dpg.add_table_column(label="Result/Time")
                                 dpg.add_table_column(label="Venue")
+                            dpg.add_spacer(height=3)
+                            dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="upcoming_schedule_table", tag="handle_upcoming_schedule")
+                            dpg.bind_item_theme("handle_upcoming_schedule", "resize_handle_theme")
+                            dpg.add_spacer(height=3)
                                 
                             dpg.add_spacer(height=10)
                             dpg.add_separator()
                             dpg.add_spacer(height=10)
                             
                             dpg.add_text("Past Games:", color=[255, 150, 100])
-                            with dpg.table(tag="past_schedule_table", header_row=True, scrollY=True, height=-1, sortable=True, callback=sort_callback):
+                            with dpg.table(tag="past_schedule_table", header_row=True, scrollY=True, height=settings["layout"]["dashboard_heights"].get("past_schedule_table", 250), sortable=True, callback=sort_callback):
                                 dpg.add_table_column(label="Date")
                                 dpg.add_table_column(label="Away")
                                 dpg.add_table_column(label="Home")
                                 dpg.add_table_column(label="Result/Time")
                                 dpg.add_table_column(label="Venue")
+                            dpg.add_spacer(height=3)
+                            dpg.add_button(label="---", width=-1, height=8, callback=start_dragging, user_data="past_schedule_table", tag="handle_past_schedule")
+                            dpg.bind_item_theme("handle_past_schedule", "resize_handle_theme")
+                            dpg.add_spacer(height=3)
 
                     with dpg.tab(label="Customize UI"):
                         with dpg.child_window(label="Theme Settings", height=-1):
@@ -1256,5 +1285,11 @@ if __name__ == "__main__":
     # Start system tray icon in a separate thread
     threading.Thread(target=setup_tray_icon, daemon=True).start()
     
-    dpg.start_dearpygui()
+    # Use manual loop instead of dpg.start_dearpygui() to allow persistence
+    while dpg.is_dearpygui_running():
+        dpg.render_dearpygui_frame()
+        # Add a small sleep when the viewport is hidden to reduce CPU usage
+        if not dpg.is_viewport_ok():
+            time.sleep(0.1)
+    
     dpg.destroy_context()

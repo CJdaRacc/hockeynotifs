@@ -2,7 +2,7 @@
     "show_comparative": true,
     "show_news": true,
     "show_top_lines": true,
-    "show_player_stats": false,
+    "show_player_stats": true,
     "notify_starts": false,
     "notify_goals": false,
     "notify_daily": true,
@@ -48,9 +48,10 @@
             "news_window": 179,
             "top_lines_window": 80,
             "stats_window": 120,
-            "weekly_games_list": 154.0,
-            "games_list": 168.0,
-            "notif_settings_window": 148.0
+            "weekly_games_list": 271.0,
+            "games_list": 300.0,
+            "notif_settings_window": 155.0,
+            "game_stats_window": 455.0
         }
     }
 }
